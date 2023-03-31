@@ -1,5 +1,3 @@
-/// Error handling with the Result type.
-
 import Prim "mo:⛔";
 import P "mo:base/Prelude";
 import Order "mo:base/Order";
