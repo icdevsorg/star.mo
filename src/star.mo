@@ -6,7 +6,7 @@ import Result "mo:base/Result";
 module {
 
   /// `Star<Ok, Err>` is the type used for returning and propagating async* behavior and errors. It
-  /// is a type with the variants, `#trapable(Ok)`, representing success and containing
+  /// is a type with the variants, `#trappable(Ok)`, representing success and containing
   /// a value produced without an awaited call, `#commited(Ok)`, representing success and containing
   /// a value produced with an awaited call,and `#err(Err)`, representing error and containing an error value.
   ///
@@ -17,15 +17,15 @@ module {
   /// ```motoko no-repl
   /// switch(createUser(myUser)) {
   ///   case (#awaited(id)) { Debug.print("Created new user with id and state commited: " # id) };
-  ///   case (#trapable(id)) { Debug.print("Created new user with id and state has not been commited: " # id) };
+  ///   case (#trappable(id)) { Debug.print("Created new user with id and state has not been commited: " # id) };
   ///   case (#err(msg)) { Debug.print("Failed to create user with the error: " # msg) };
   /// }
   /// ```
   public type Star<Ok, Err> = {
-    #trapable : Ok;
+    #trappable : Ok;
     #awaited : Ok;
     #err : {
-      #trapable: Err;
+      #trappable: Err;
       #awaited: Err;
     };
   };
@@ -38,13 +38,13 @@ module {
     r2 : Star<Ok, Err>
   ) : Bool {
     switch (r1, r2) {
-      case (#trapable(ok1), #trapable(ok2)) {
+      case (#trappable(ok1), #trappable(ok2)) {
         eqOk(ok1, ok2)
       };
       case (#awaited(ok1), #awaited(ok2)) {
         eqOk(ok1, ok2)
       };
-      case (#err(#trapable(err1)), #err(#trapable(err2))) {
+      case (#err(#trappable(err1)), #err(#trappable(err2))) {
         eqErr(err1, err2)
       };
       case (#err(#awaited(err1)), #err(#awaited(err2))) {
@@ -63,7 +63,7 @@ module {
     r2 : Star<Ok, Err>
   ) : Order.Order {
     switch (r1, r2) {
-      case (#trapable(ok1), #trapable(ok2)) {
+      case (#trappable(ok1), #trappable(ok2)) {
         compareOk(ok1, ok2)
       };
       case (#awaited(ok1), #awaited(ok2)) {
@@ -71,13 +71,13 @@ module {
       };
       case (#err(err1), #err(err2)) {
         switch(err1, err2){
-          case(#trapable(err1),#trapable(err2)){
+          case(#trappable(err1),#trappable(err2)){
             compareErr(err1, err2);
           };
-          case(#awaited(err1),#trapable(err2)){
+          case(#awaited(err1),#trappable(err2)){
             compareErr(err1, err2);
           };
-          case(#trapable(err1),#awaited(err2)){
+          case(#trappable(err1),#awaited(err2)){
             compareErr(err1, err2);
           };
           case(#awaited(err1),#awaited(err2)){
@@ -86,13 +86,13 @@ module {
         };
         
       };
-      case (#awaited(ok1), #trapable(ok2)) {
+      case (#awaited(ok1), #trappable(ok2)) {
         compareOk(ok1, ok2)
       };
-      case (#trapable(ok1), #awaited(ok2)) {
+      case (#trappable(ok1), #awaited(ok2)) {
         compareOk(ok1, ok2)
       };
-      case (#trapable(_), #err(_)) {
+      case (#trappable(_), #err(_)) {
         #greater
       };
       case (#awaited(_), #err(_)) {
@@ -108,7 +108,7 @@ module {
   /// import Star "mo:base/Star";
   /// type Star<T,E> = Result.Result<T, E>;
   /// func largerThan10(x : Nat) : async* Star<Nat, Text> =
-  ///   if (x > 10) { #trapable(x) } else {#err("Not larger than 10.") };
+  ///   if (x > 10) { #trappable(x) } else {#err("Not larger than 10.") };
   ///
   /// func smallerThan20(x : Nat) : async* Star<Nat, Text> =
   ///   if (x < 20) { #awaited(await service(x)) } else { #err("Not smaller than 20.") };
@@ -131,7 +131,7 @@ module {
           case(#awaited(r)){
             #awaited(r);
           };
-          case(#trapable(r)){
+          case(#trappable(r)){
             //since initial call was awaited, all following should inherit awaited status
             #awaited(r);
           };
@@ -140,7 +140,7 @@ module {
           };
         };
       };
-      case (#trapable(r)) { y(r) }
+      case (#trappable(r)) { y(r) }
     };
   };
 
@@ -148,13 +148,13 @@ module {
   ///
   /// ```motoko
   /// import Star "mo:base/Result";
-  /// assert(Star.flatten<Nat, Text>(#trapable(#trapable(10))) == #trapable(10));
+  /// assert(Star.flatten<Nat, Text>(#trappable(#trappable(10))) == #trappable(10));
   /// assert(Star.flatten<Nat, Text>(#err(#awaited("Wrong"))) == #err(#awaited("Wrong")));
-  /// assert(Star.flatten<Nat, Text>(#err(#trapable("Wrong"))) == #err(#trapable("Wrong")));
-  /// assert(Star.flatten<Nat, Text>(#trapable(#err(#awaited("Wrong")))) == #err(#awaited("Wrong")));
-  /// assert(Star.flatten<Nat, Text>(#trapable(#err(#trapable("Wrong")))) == #err(#trapable("Wrong")));
+  /// assert(Star.flatten<Nat, Text>(#err(#trappable("Wrong"))) == #err(#trappable("Wrong")));
+  /// assert(Star.flatten<Nat, Text>(#trappable(#err(#awaited("Wrong")))) == #err(#awaited("Wrong")));
+  /// assert(Star.flatten<Nat, Text>(#trappable(#err(#trappable("Wrong")))) == #err(#trappable("Wrong")));
   /// assert(Star.flatten<Nat, Text>(#awaited(#err(#awaited("Wrong")))) == #err(#awaited("Wrong")));
-  /// assert(Star.flatten<Nat, Text>(#awaited(#err(#trapable("Wrong")))) == #err(#awaited("Wrong")));
+  /// assert(Star.flatten<Nat, Text>(#awaited(#err(#trappable("Wrong")))) == #err(#awaited("Wrong")));
   /// ```
   public func flatten<Ok, Error>(
     result : Star<Star<Ok, Error>, Error>
@@ -165,12 +165,12 @@ module {
           case (#awaited(ok)){
             #awaited(ok);
           };
-          case (#trapable(ok)){
+          case (#trappable(ok)){
             #awaited(ok);
           };
           case(#err(e)){
             switch(e){
-              case(#trapable(e)){
+              case(#trappable(e)){
                 #err(#awaited(e));
               };
               case(#awaited(e)){
@@ -180,7 +180,7 @@ module {
           };
         } 
       };
-      case (#trapable(ok)) { ok };
+      case (#trappable(ok)) { ok };
       case (#err(err)) { #err(err)};
     };
   };
@@ -193,7 +193,7 @@ module {
     switch x {
       case (#err(e)) { #err(e) };
       case (#awaited(r)) { #awaited(f(r))};
-      case (#trapable(r)) { #trapable(f(r))};
+      case (#trappable(r)) { #trappable(f(r))};
     };
   };
 
@@ -205,8 +205,8 @@ module {
     switch x {
       case (#err(e)) { 
         switch(e){
-          case(#trapable(e)){
-            #err(#trapable(f(e))) 
+          case(#trappable(e)){
+            #err(#trappable(f(e))) 
           };
           case(#awaited(e)){
             #err(#awaited(f(e)))
@@ -214,54 +214,54 @@ module {
         };
       };
       case (#awaited(r)) { #awaited(r) };
-      case (#trapable(r)) { #trapable(r) }
+      case (#trappable(r)) { #trappable(r) }
     }
   };
 
   /// Create a star from an option, including an error value to handle the `null` case.
   /// ```motoko
   /// import Star "mo:base/Star";
-  /// assert(Star.fromOption(?42, "err") == #trapable(42));
-  /// assert(Star.fromOption(null, "err") == #err(#trapable("err")));
+  /// assert(Star.fromOption(?42, "err") == #trappable(42));
+  /// assert(Star.fromOption(null, "err") == #err(#trappable("err")));
   /// ```
   public func fromOption<R, E>(x : ?R, err : E) : Star<R, E> {
     switch x {
-      case (?x) { #trapable(x) };
-      case null { #err(#trapable(err)) }
+      case (?x) { #trappable(x) };
+      case null { #err(#trappable(err)) }
     }
   };
 
   /// Create an option from a star, turning all #err into `null`.
   /// ```motoko
   /// import Star "mo:base/Star";
-  /// assert(Star.toOption(#trapable(42)) == ?42);
+  /// assert(Star.toOption(#trappable(42)) == ?42);
   /// assert(Star.toOption(#awaited(42)) == ?42);
-  /// assert(Star.toOption(#err(#trapable("err"))) == null);
+  /// assert(Star.toOption(#err(#trappable("err"))) == null);
   /// assert(Star.toOption(#err(#awaited("err"))) == null);
   /// ```
   public func toOption<R, E>(r : Star<R, E>) : ?R {
     switch r {
-      case (#trapable(x)) { ?x };
+      case (#trappable(x)) { ?x };
       case (#awaited(x)) { ?x };
       case (#err(_)) { null }
     }
   };
 
-  /// Create a result from a star, turning all #awaited and #trapable into #ok and all #err() into #err.
+  /// Create a result from a star, turning all #awaited and #trappable into #ok and all #err() into #err.
   /// ```motoko
   /// import Star "mo:base/Star";
-  /// assert(Star.toResult(#trapable(42)) == #ok(42));
+  /// assert(Star.toResult(#trappable(42)) == #ok(42));
   /// assert(Star.toResult(#awaited(42)) == #ok(42));
-  /// assert(Star.toResult(#err(#trapable("err"))) == #err("err"));
+  /// assert(Star.toResult(#err(#trappable("err"))) == #err("err"));
   /// assert(Star.toResult(#err(#awaited("err"))) == #err("err"));
   /// ```
   public func toResult<R, E>(r : Star<R, E>) : Result.Result<R, E> {
     switch r {
-      case (#trapable(x)) { #ok(x) };
+      case (#trappable(x)) { #ok(x) };
       case (#awaited(x)) { #ok(x) };
       case (#err(e)) { 
         switch(e){
-          case(#trapable(e)){
+          case(#trappable(e)){
             #err(e);
           };
           case(#awaited(e)){
@@ -276,16 +276,16 @@ module {
   /// ```motoko
   /// import Star "mo:base/Star";
   /// assert(Star.fromResult(#ok(42), true) == #awaited(42));
-  /// assert(Star.fromResult(#ok(42), false) == #trapable(42));
-  /// assert(Star.fromOption(#err("err"), false) == #err(#trapable("err")));
+  /// assert(Star.fromResult(#ok(42), false) == #trappable(42));
+  /// assert(Star.fromOption(#err("err"), false) == #err(#trappable("err")));
   /// assert(Star.fromOption(#err("err"), true) == #err(#awaited("err")));
   /// ```
   public func fromResult<R, E>(x : Result.Result<R,E>, awaited : Bool) : Star<R, E> {
     switch (x, awaited) {
-      case (#ok(x), false) { #trapable(x) };
+      case (#ok(x), false) { #trappable(x) };
       case (#ok(x), true) { #awaited(x) };
       case (#err(err), true) { #err(#awaited(err)) };
-      case (#err(err), false) { #err(#trapable(err)) };
+      case (#err(err), false) { #err(#trappable(err)) };
     }
   };
 
@@ -297,13 +297,13 @@ module {
   /// var counter : Nat = 0;
   /// Star.iterate<Nat, Text>(#awaited(5), func (x : Nat) { counter += x });
   /// assert(counter == 5);
-  /// Star.iterate<Nat, Text>(#err(#trapable("Wrong")), func (x : Nat) { counter += x });
+  /// Star.iterate<Nat, Text>(#err(#trappable("Wrong")), func (x : Nat) { counter += x });
   /// assert(counter == 5);
   /// ```
   public func iterate<Ok, Err>(res : Star<Ok, Err>, f : Ok -> ()) {
     switch res {
       case (#awaited(ok)) { f(ok) };
-      case (#trapable(ok)) { f(ok) };
+      case (#trappable(ok)) { f(ok) };
       case _ {}
     }
   };
@@ -312,7 +312,7 @@ module {
   public func isOk(r : Star<Any, Any>) : Bool {
     switch r {
       case (#awaited(_)) { true };
-      case (#trapable(_)) { true };
+      case (#trappable(_)) { true };
       case (#err(_)) { false }
     }
   };
@@ -321,25 +321,25 @@ module {
   public func isAwaited(r : Star<Any, Any>) : Bool {
     switch r {
       case (#awaited(_)) { true };
-      case (#trapable(_)) { false };
+      case (#trappable(_)) { false };
       case (#err(e)) {
         switch(e){
           case(#awaited(e)) true;
-          case(#trapable(e)) false;
+          case(#trappable(e)) false;
         };
        };
     };
   };
 
-  // Whether this Star is trapable
-  public func isTrapable(r : Star<Any, Any>) : Bool {
+  // Whether this Star is trappable
+  public func isTrappable(r : Star<Any, Any>) : Bool {
     switch r {
       case (#awaited(_)) { false };
-      case (#trapable(_)) { true };
+      case (#trappable(_)) { true };
       case (#err(e)) {
         switch(e){
           case(#awaited(e)) false;
-          case(#trapable(e)) true;
+          case(#trappable(e)) true;
         };
        };
     };
@@ -354,7 +354,7 @@ module {
     }
   };
 
-  /// Asserts that its argument is an `#awaited` or `#trapable` result, traps otherwise.
+  /// Asserts that its argument is an `#awaited` or `#trappable` result, traps otherwise.
   public func assertOk(r : Star<Any, Any>) {
     switch (r) {
       case (#err(_)) { assert false };
@@ -367,16 +367,16 @@ module {
     switch (r) {
       case (#err(_)) {};
       case (#awaited(_)) assert false;
-      case (#trapable(_)) assert false
+      case (#trappable(_)) assert false
     }
   };
 
-  /// Asserts that its argument is an `#trapable` result, traps otherwise.
-  public func assertTrapable(r : Star<Any, Any>) {
+  /// Asserts that its argument is an `#trappable` result, traps otherwise.
+  public func assertTrappable(r : Star<Any, Any>) {
     switch (r) {
       case (#err(_)) assert false;
       case (#awaited(_)) assert false;
-      case (#trapable(_)) {};
+      case (#trappable(_)) {};
     }
   };
 
@@ -385,7 +385,7 @@ module {
     switch (r) {
       case (#err(_)) assert false;
       case (#awaited(_)) {};
-      case (#trapable(_)) assert false;
+      case (#trappable(_)) assert false;
     }
   };
 
