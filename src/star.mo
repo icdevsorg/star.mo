@@ -102,48 +102,6 @@ module {
     }
   };
 
-  /// Allows sequencing of `Star` values and functions that return
-  /// `Stars`'s themselves.
-  /// ```motoko
-  /// import Star "mo:base/Star";
-  /// type Star<T,E> = Result.Result<T, E>;
-  /// func largerThan10(x : Nat) : async* Star<Nat, Text> =
-  ///   if (x > 10) { #trappable(x) } else {#err("Not larger than 10.") };
-  ///
-  /// func smallerThan20(x : Nat) : async* Star<Nat, Text> =
-  ///   if (x < 20) { #awaited(await service(x)) } else { #err("Not smaller than 20.") };
-  ///
-  /// func between10And20(x : Nat) : Star<Nat, Text> =
-  ///   Result.chain(largerThan10(x), smallerThan20);
-  ///
-  /// assert(between10And20(15) == #awaited(15));
-  /// assert(between10And20(9) == #err("Not larger than 10."));
-  /// assert(between10And20(21) == #err("Not smaller than 20."));
-  /// ```
-  public func chain<S1, S2, Error>(
-    x : Star<S1, Error>,
-    y : S1 -> Star<S2, Error>
-  ) : Star<S2, Error> {
-    switch x {
-      case (#err(e)) { #err(e) };
-      case (#awaited(r)) { 
-        switch(y(r)){
-          case(#awaited(r)){
-            #awaited(r);
-          };
-          case(#trappable(r)){
-            //since initial call was awaited, all following should inherit awaited status
-            #awaited(r);
-          };
-          case(#err(r)){
-            #err(r);
-          };
-        };
-      };
-      case (#trappable(r)) { y(r) }
-    };
-  };
-
   /// Flattens a nested Star.
   ///
   /// ```motoko
