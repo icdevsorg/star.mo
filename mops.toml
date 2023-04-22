@@ -1,8 +1,8 @@
 [package]
 name = "star"
 version = "0.1.0"
-description = ""
-repository = ""
+description = "A Motoko library for handling asynchronous and trappable behavior with the async* functions."
+repository = "https://github.com/icdevs/star.mo"
 
 [dependencies]
 base = "https://github.com/dfinity/motoko-base#0d42146536771a60933786d8387b7c4ea4a1614b"
