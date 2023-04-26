@@ -7,7 +7,7 @@ module {
 
   /// `Star<Ok, Err>` is the type used for returning and propagating async* behavior and errors. It
   /// is a type with the variants, `#trappable(Ok)`, representing success and containing
-  /// a value produced without an awaited call, `#commited(Ok)`, representing success and containing
+  /// a value produced without an awaited call, `#awaited(Ok)`, representing success and containing
   /// a value produced with an awaited call,and `#err(Err)`, representing error and containing an error value.
   ///
   /// The simplest way of working with `Star`s is to pattern match on them:
