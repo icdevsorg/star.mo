@@ -3,6 +3,7 @@ import Star "../src/star";
 import Int "mo:base/Int";
 import Array "mo:base/Array";
 import List "mo:base/List";
+import Debug "mo:base/Debug";
 
 import Suite "mo:matchers/Suite";
 import M "mo:matchers/Matchers";
@@ -11,6 +12,8 @@ import T "mo:matchers/Testable";
 shared (deployer) actor class Nft_Canister() = this {
 
   public shared func test() : async Bool{
+
+    Debug.print("in test");
 
     func makeNatural(x : Int) : Star.Star<Nat, Text> = if (x >= 0) {
       #trappable(Int.abs(x))
@@ -63,7 +66,6 @@ shared (deployer) actor class Nft_Canister() = this {
     let suite = Suite.suite(
       "Result",
       [
-      
         flatten,
         iterate
       ]
