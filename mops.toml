@@ -1,9 +1,9 @@
 [package]
 name = "star"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Motoko library for handling asynchronous and trappable behavior with the async* functions."
 repository = "https://github.com/icdevs/star.mo"
 
 [dependencies]
-base = "https://github.com/dfinity/motoko-base#0d42146536771a60933786d8387b7c4ea4a1614b"
-matchers = "https://github.com/kritzcreek/motoko-matchers#v1.3.0"
+base = "https://github.com/dfinity/motoko-base#moc-0.10.1@80ededb39954739b18b88fc0e5561264003cf9ab"
+matchers = "https://github.com/kritzcreek/motoko-matchers#v1.3.0@3dac8a071b69e4e651b25a7d9683fe831eb7cffd"
